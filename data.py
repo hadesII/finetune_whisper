@@ -10,18 +10,18 @@ class WhisperDataModule(pl.LightningDataModule):
 
     def __init__(self, batch_size = 8, num_workers = 2, sample_rate = 16000):
         super().__init__()
-        self.processor = WhisperProcessor
+        self.processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.sample_rate = sample_rate
 
     def setup(self, stage: str,**kwargs) -> None:
-        data_dir = 'data/zh_yue'
+        data_dir = '/home/yangwei/dtm/corpus/data/zh_yue'
         train_list = os.path.join(data_dir, 'train.list')
         dev_list = os.path.join(data_dir, 'dev.list')
         train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(train_list=train_list,dev_list=dev_list)
-        self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate)
-        self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate)
+        self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
+        self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
 
     def train_dataloader(self) :
         return DataLoader(self.train_dataset,
@@ -63,11 +63,11 @@ class WhisperDataModule(pl.LightningDataModule):
 
 
 class SpeechDataset(Dataset):
-    def __init__(self, audio_info_list, sample_rate) -> None:
+    def __init__(self, audio_info_list, sample_rate, processor) -> None:
         super().__init__()
         self.audio_info_list = audio_info_list
         self.sample_rate = sample_rate
-        self.processor = WhisperProcessor
+        self.processor = processor
 
     def __len__(self):
         return len(self.audio_info_list)
