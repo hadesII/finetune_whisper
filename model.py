@@ -25,7 +25,7 @@ class WhisperModule(Seq2SeqTransformer):
 
     def compute_generate_metrics(self, batch, prefix):
         tgt_lns = self.tokenize_labels(batch["labels"])
-        pred_lns = self.model.generate(input_ids=batch["features"], language="chinese", task="transcribe")
+        pred_lns = self.model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
         # wrap targets in list as score expects a list of potential references
         result = self.wer(preds=pred_lns, target=tgt_lns)
         self.log(f"{prefix}_wer", result, on_step=False, on_epoch=True, prog_bar=True)
