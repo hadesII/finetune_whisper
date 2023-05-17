@@ -1,3 +1,5 @@
+import pdb
+
 import pytorch_lightning as pl
 import torch
 from utils import load_from_local_path, dataset_merge
@@ -30,7 +32,7 @@ class WhisperDataModule(pl.LightningDataModule):
                           collate_fn=self.whisperdatacollatorwhithadding
                           )
     def val_dataloader(self) :
-        return DataLoader(self.train_dataset,
+        return DataLoader(self.valid_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.whisperdatacollatorwhithadding
