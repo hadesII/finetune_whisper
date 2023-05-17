@@ -12,7 +12,7 @@ class WhisperModule(Seq2SeqTransformer):
 
     def __init__(self, *args: Any, downstream_model_type=WhisperForConditionalGeneration, lora=False, **kwargs: Any):
         super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
-        self.wer = None
+        self.wer = evaluate.load("wer")
 
         self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
         if lora == True:
@@ -21,7 +21,6 @@ class WhisperModule(Seq2SeqTransformer):
 
             self.model = get_peft_model(self.model, config)
 
-        self.model.generate()
 
     def compute_generate_metrics(self, batch, prefix):
         tgt_lns = self.tokenize_labels(batch["labels"])
