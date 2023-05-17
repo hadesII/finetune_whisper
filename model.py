@@ -2,13 +2,14 @@ from lightning_transformers.core.seq2seq.model import Seq2SeqTransformer
 from typing import Any
 import evaluate
 from peft import LoraConfig, get_peft_model
+from transformers import WhisperForConditionalGeneration
 
 
 
 class WhisperModule(Seq2SeqTransformer):
 
-    def __init__(self, *args: Any, lora=False, **kwargs: Any):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args: Any, downstream_model_type=WhisperForConditionalGeneration, lora=False, **kwargs: Any):
+        super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
         self.wer = None
         if lora == True:
             config = LoraConfig(r=32, lora_alpha=64, target_modules=["q_proj", "v_proj"], lora_dropout=0.05,
