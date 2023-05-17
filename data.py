@@ -23,13 +23,13 @@ class WhisperDataModule(pl.LightningDataModule):
         return DataLoader(self.train_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
-                          collate_fn=self.whisperdatacollatorwhithadding()
+                          collate_fn=self.whisperdatacollatorwhithadding
                           )
     def val_dataloader(self) :
         return DataLoader(self.train_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
-                          collate_fn=self.whisperdatacollatorwhithadding()
+                          collate_fn=self.whisperdatacollatorwhithadding
                           )
 
 
