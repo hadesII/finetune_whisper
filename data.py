@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 class WhisperDataModule(pl.LightningDataModule):
 
     def __init__(self, batch_size = 8, num_workers = 2, sample_rate = 16000):
+        super().__init__()
         self.processor = WhisperProcessor
         self.batch_size = batch_size
         self.num_workers = num_workers
