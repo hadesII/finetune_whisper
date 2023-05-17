@@ -4,6 +4,7 @@ from utils import load_from_local_path, dataset_merge
 from transformers import WhisperProcessor
 from torch.utils.data import DataLoader, Dataset
 
+import os
 
 class WhisperDataModule(pl.LightningDataModule):
 
@@ -15,7 +16,10 @@ class WhisperDataModule(pl.LightningDataModule):
         self.sample_rate = sample_rate
 
     def setup(self, stage: str,**kwargs) -> None:
-        train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(**kwargs)
+        data_dir = 'data/zh_yue'
+        train_list = os.path.join(data_dir, 'train.list')
+        dev_list = os.path.join(data_dir, 'dev.list')
+        train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(train_list=train_list,dev_list=dev_list)
         self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate)
         self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate)
 
