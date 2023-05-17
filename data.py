@@ -1,7 +1,4 @@
-import pdb
-
 import pytorch_lightning as pl
-import torch
 from utils import load_from_local_path, dataset_merge
 from transformers import WhisperProcessor
 from torch.utils.data import DataLoader, Dataset
