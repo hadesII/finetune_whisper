@@ -3,7 +3,7 @@ from data import WhisperDataModule
 from model import WhisperModule
 
 def main():
-    dm = WhisperModule()
+    dm = WhisperDataModule()
     model = WhisperModule(pretrained_model_name_or_path="openai/whisper-large-v2")
 
     trainer = Trainer(accelerator="gpu", devices=1,amp_backend="apex",amp_level="02",\
