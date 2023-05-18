@@ -35,7 +35,14 @@ class WhisperModule(Seq2SeqTransformer):
         self.metrics_wer = evaluate.load("wer")
         self.metrics_cer = evaluate.load("cer")
 
-
+    def common_step(self, prefix: str, batch: Any) -> torch.Tensor:
+        outputs = self.model(**batch)
+        import pdb; pdb.set_trace()
+        loss, logits = outputs[:2]
+        import pdb; pdb.set_trace()
+        if self.should_compute_generate_metrics:
+            self.compute_generate_metrics(batch, prefix)
+        return loss
 
     def compute_generate_metrics(self, batch, prefix):
         # input_ids = batch["input_features"]
