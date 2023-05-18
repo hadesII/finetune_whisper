@@ -1,5 +1,6 @@
 from lightning_transformers.core.seq2seq.model import Seq2SeqTransformer
-from typing import Any
+from typing import Any, Optional
+import torch
 import evaluate
 from peft import LoraConfig, get_peft_model
 from transformers import WhisperForConditionalGeneration
@@ -20,15 +21,47 @@ class WhisperModule(Seq2SeqTransformer):
             self.model = get_peft_model(self.model, config)
 
 
-    def compute_generate_metrics(self, batch, prefix):
-        label_ids = batch["labels"]
-        label_ids[label_ids == -100] = self.tokenizer.pad_token_id
-        tgt_lns = self.tokenize_labels(label_ids)
-        pred_lns = self.super().model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
-        pred_lns = self.tokenizer.batch_decode(pred_lns, skip_special_tokens=True)
-        # wrap targets in list as score expects a list of potential references
-        result = 100 * self.wer.compute(predictions=pred_lns, references=tgt_lns)
-        self.log(f"{prefix}_wer", result, on_step=False, on_epoch=True, prog_bar=True)
+    # def compute_generate_metrics(self, batch, prefix):
+    #     label_ids = batch["labels"]
+    #     label_ids[label_ids == -100] = self.tokenizer.pad_token_id
+    #     tgt_lns = self.tokenize_labels(label_ids)
+    #     pred_lns = self.super().model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
+    #     pred_lns = self.tokenizer.batch_decode(pred_lns, skip_special_tokens=True)
+    #     # wrap targets in list as score expects a list of potential references
+    #     result = 100 * self.wer.compute(predictions=pred_lns, references=tgt_lns)
+    #     self.log(f"{prefix}_wer", result, on_step=False, on_epoch=True, prog_bar=True)
+    #
+    # def configure_metrics(self, stage: str):
+    #     self.wer = evaluate.load("wer")
 
-    def configure_metrics(self, stage: str):
-        self.wer = evaluate.load("wer")
+
+    def validation_step(self, batch, batch_id):
+        input_ids = batch["input_ids"]
+        labels = batch["labels"].long()
+        dec_input_ids = batch["dec_input_ids"].long()
+
+        audio_features = self.model.encoder(input_ids)
+        out = self.model.decoder(dec_input_ids, audio_features)
+
+        loss = self.loss_fn(out.view(-1, out.size(-1)), labels.view(-1))
+
+        out[out == -100] = self.tokenizer.eot
+        labels[labels == -100] = self.tokenizer.eot
+
+        o_list, l_list = [], []
+        for o, l in zip(out, labels):
+            o = torch.argmax(o, dim=1)
+            o_list.append(self.tokenizer.decode_sk(o, skip_special_tokens=True))
+            l_list.append(self.tokenizer.decode_sk(l, skip_special_tokens=True))
+        cer = self.metrics_cer.compute(references=l_list, predictions=o_list)
+        wer = self.metrics_wer.compute(references=l_list, predictions=o_list)
+
+        self.log("val/loss", loss, on_step=True, prog_bar=True, logger=True)
+        self.log("val/cer", cer, on_step=True, prog_bar=True, logger=True)
+        self.log("val/wer", wer, on_step=True, prog_bar=True, logger=True)
+
+        return {
+            "cer": cer,
+            "wer": wer,
+            "loss": loss
+        }
