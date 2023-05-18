@@ -12,7 +12,7 @@ from transformers import WhisperTokenizer
 class WhisperModule(Seq2SeqTransformer):
 
     def __init__(self, *args: Any, downstream_model_type=WhisperForConditionalGeneration, lora=False, **kwargs: Any):
-        super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
+        super().__init__(*args,compute_generate_metrics=False,downstream_model_type=downstream_model_type, **kwargs)
         self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
         if lora == True:
             config = LoraConfig(r=32, lora_alpha=64, target_modules=["q_proj", "v_proj"], lora_dropout=0.05,
