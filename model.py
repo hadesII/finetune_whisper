@@ -38,12 +38,13 @@ class WhisperModule(Seq2SeqTransformer):
 
 
     def compute_generate_metrics(self, batch, prefix):
-        input_ids = batch["input_features"]
+        # input_ids = batch["input_features"]
         labels = batch["labels"].long()
-        # dec_input_ids = batch["dec_input_ids"].long()
-
-        audio_features = self.model.encoder(input_ids)
-        out = self.model.decoder(encoder_hidden_states=audio_features)
+        # # dec_input_ids = batch["dec_input_ids"].long()
+        #
+        # audio_features = self.model.encoder(input_ids)
+        # out = self.model.decoder(encoder_hidden_states=audio_features)
+        out = self.model(batch["input_features"])
 
         loss = self.loss_fn(out.view(-1, out.size(-1)), labels.view(-1))
 
