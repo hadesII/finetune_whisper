@@ -24,7 +24,7 @@ class WhisperModule(Seq2SeqTransformer):
         label_ids = batch["labels"]
         label_ids[label_ids == -100] = self.tokenizer.pad_token_id
         tgt_lns = self.tokenize_labels(label_ids)
-        pred_lns = self.model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
+        pred_lns = self.super().model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
         pred_lns = self.tokenizer.batch_decode(pred_lns, skip_special_tokens=True)
         # wrap targets in list as score expects a list of potential references
         result = 100 * self.wer.compute(predictions=pred_lns, references=tgt_lns)
