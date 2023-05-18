@@ -31,11 +31,13 @@ class WhisperModule(Seq2SeqTransformer):
     #     result = 100 * self.wer.compute(predictions=pred_lns, references=tgt_lns)
     #     self.log(f"{prefix}_wer", result, on_step=False, on_epoch=True, prog_bar=True)
     #
-    # def configure_metrics(self, stage: str):
-    #     self.wer = evaluate.load("wer")
+    def configure_metrics(self, stage: str):
+        self.metrics_wer = evaluate.load("wer")
+        self.metrics_cer = evaluate.load("cer")
 
 
-    def validation_step(self, batch, batch_id):
+
+    def compute_generate_metrics(self, batch, prefix):
         input_ids = batch["input_ids"]
         labels = batch["labels"].long()
         dec_input_ids = batch["dec_input_ids"].long()
