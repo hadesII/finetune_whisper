@@ -41,37 +41,22 @@ class WhisperModule(Seq2SeqTransformer):
         loss, logits = outputs[:2]
         import pdb; pdb.set_trace()
         if self.should_compute_generate_metrics:
-            self.compute_generate_metrics(batch, prefix)
+            self.compute_generate_metrics(logits)
         return loss
 
-    def compute_generate_metrics(self, batch, prefix):
-        # input_ids = batch["input_features"]
-        labels = batch["labels"].long()
-        # # dec_input_ids = batch["dec_input_ids"].long()
-        #
-        # audio_features = self.model.encoder(input_ids)
-        # out = self.model.decoder(encoder_hidden_states=audio_features)
-        out = self.model(batch["input_features"])
+    def compute_generate_metrics(self, pred):
 
-        loss = self.loss_fn(out.view(-1, out.size(-1)), labels.view(-1))
+        pred_ids = pred.predictions
+        label_ids = pred.label_ids
 
-        out[out == -100] = self.tokenizer.eot
-        labels[labels == -100] = self.tokenizer.eot
+        # replace -100 with the pad_token_id
+        label_ids[label_ids == -100] = self.tokenizer.pad_token_id
 
-        o_list, l_list = [], []
-        for o, l in zip(out, labels):
-            o = torch.argmax(o, dim=1)
-            o_list.append(self.tokenizer.decode_sk(o, skip_special_tokens=True))
-            l_list.append(self.tokenizer.decode_sk(l, skip_special_tokens=True))
-        cer = self.metrics_cer.compute(references=l_list, predictions=o_list)
-        wer = self.metrics_wer.compute(references=l_list, predictions=o_list)
+        # we do not want to group tokens when computing the metrics
+        pred_str = self.tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        label_str = self.tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
-        self.log("val/loss", loss, on_step=True, prog_bar=True, logger=True)
-        self.log("val/cer", cer, on_step=True, prog_bar=True, logger=True)
-        self.log("val/wer", wer, on_step=True, prog_bar=True, logger=True)
+        wer = 100 * self.metric.compute(predictions=pred_str, references=label_str)
 
-        return {
-            "cer": cer,
-            "wer": wer,
-            "loss": loss
-        }
+        return {"wer": wer}
+
