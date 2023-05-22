@@ -18,9 +18,9 @@ class WhisperDataModule(pl.LightningDataModule):
         self.feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-large-v2", local_files_only=True)
 
     def setup(self, stage: str,**kwargs) -> None:
-        data_dir = '/home/yangwei/dtm/corpus/data/zh_yue'
-        train_list = os.path.join(data_dir, 'train.list')
-        dev_list = os.path.join(data_dir, 'test.list')
+        data_dir = '/home/yangwei/dtm/corpus/data_json/cantonese'
+        train_list = os.path.join(data_dir, 'train.json')
+        dev_list = os.path.join(data_dir, 'test.json')
         audio_dataset = load_dataset('json', data_files={'train': train_list, 'test': dev_list})
         audio_dataset = audio_dataset.cast_column("audio", Audio(sampling_rate=16000))
 
