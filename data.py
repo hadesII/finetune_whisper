@@ -23,13 +23,13 @@ class WhisperDataModule(pl.LightningDataModule):
         dev_list = os.path.join(data_dir, 'dev.list')
         audio_dataset = load_dataset('json', data_files={'train': train_list, 'test': dev_list})
 
-        audio_dataset = audio_dataset.cast_column("audio", Audio(sampling_rate=16000))
         if 'duration' in audio_dataset['train'].features.keys():
             is_audio_in_length = get_audio_length_processor(0.5, 30)
             audio_dataset["train"] = audio_dataset["train"].filter(is_audio_in_length, input_columns=["duration"])
             audio_dataset["test"] = audio_dataset["test"].filter(is_audio_in_length, input_columns=["duration"])
             print(f"过滤后训练数据：{audio_dataset['train'].num_rows}，测试数据：{audio_dataset['test'].num_rows}")
         audio_dataset = audio_dataset.with_transform(self.prepare_dataset)
+        audio_dataset = audio_dataset.cast_column("audio", Audio(sampling_rate=16000))
         # train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(train_list=train_list,dev_list=dev_list)
         self.train_dataset, self.valid_dataset = audio_dataset["train"] , audio_dataset["test"]
         # self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
