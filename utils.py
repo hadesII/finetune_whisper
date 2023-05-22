@@ -48,3 +48,7 @@ def get_audio_length_processor(min_audio_length, max_audio_length):
         return min_audio_length < duration < max_audio_length
 
     return is_audio_in_length_range
+
+
+def make_inputs_require_grad(module, input, output):
+    output.requires_grad_(True)
