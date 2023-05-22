@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
-# from utils import load_from_local_path, dataset_merge
-from transformers import WhisperProcessor
+from utils import get_audio_length_processor,load_from_local_path, dataset_merge
+from transformers import WhisperProcessor,WhisperFeatureExtractor
 from torch.utils.data import DataLoader, Dataset
 from datasets import load_dataset, Audio
 
@@ -15,6 +15,8 @@ class WhisperDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.sample_rate = sample_rate
 
+        self.feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-large-v2", local_files_only=True)
+
     def setup(self, stage: str,**kwargs) -> None:
         data_dir = '/home/yangwei/dtm/corpus/data/zh_yue'
         train_list = os.path.join(data_dir, 'train.list')
@@ -22,11 +24,12 @@ class WhisperDataModule(pl.LightningDataModule):
         audio_dataset = load_dataset('json', data_files={'train': train_list, 'test': dev_list})
 
         audio_dataset = audio_dataset.cast_column("audio", Audio(sampling_rate=16000))
-        # if 'duration' in audio_dataset['train'].features.keys():
-        #     is_audio_in_length = get_audio_length_processor(args.min_audio_len, args.max_audio_len)
-        #     audio_dataset["train"] = audio_dataset["train"].filter(is_audio_in_length, input_columns=["duration"])
-        #     audio_dataset["test"] = audio_dataset["test"].filter(is_audio_in_length, input_columns=["duration"])
-        #     print(f"过滤后训练数据：{audio_dataset['train'].num_rows}，测试数据：{audio_dataset['test'].num_rows}")
+        if 'duration' in audio_dataset['train'].features.keys():
+            is_audio_in_length = get_audio_length_processor(0.5, 30)
+            audio_dataset["train"] = audio_dataset["train"].filter(is_audio_in_length, input_columns=["duration"])
+            audio_dataset["test"] = audio_dataset["test"].filter(is_audio_in_length, input_columns=["duration"])
+            print(f"过滤后训练数据：{audio_dataset['train'].num_rows}，测试数据：{audio_dataset['test'].num_rows}")
+        audio_dataset = audio_dataset.with_transform(self.prepare_dataset)
         # train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(train_list=train_list,dev_list=dev_list)
         self.train_dataset, self.valid_dataset = audio_dataset["train"] , audio_dataset["test"]
         # self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
@@ -70,6 +73,14 @@ class WhisperDataModule(pl.LightningDataModule):
 
 
         return batch
+    def prepare_dataset(self,batch):
+        new_batch = {}
+        # 从输入音频数组中计算log-Mel输入特征
+        new_batch["input_features"] = [self.feature_extractor(a["array"], sampling_rate=a["sampling_rate"]).input_features[0]
+                                       for a in batch["audio"]]
+        # 将目标文本编码为标签ID
+        new_batch["labels"] = [self.processor.tokenizer(s).input_ids for s in batch["sentence"]]
+        return new_batch
 
 
 # class SpeechDataset(Dataset):
@@ -95,3 +106,4 @@ class WhisperDataModule(pl.LightningDataModule):
 #             "input_features": mel,
 #             "labels": labels,
 #         }
+

@@ -43,3 +43,8 @@ def dataset_merge(train_list,dev_list):
     random.shuffle(eval_audio_transcript_pair_list)
 
     return train_audio_transcript_pair_list, eval_audio_transcript_pair_list
+def get_audio_length_processor(min_audio_length, max_audio_length):
+    def is_audio_in_length_range(duration):
+        return min_audio_length < duration < max_audio_length
+
+    return is_audio_in_length_range
