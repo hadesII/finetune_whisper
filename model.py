@@ -35,6 +35,9 @@ class WhisperModule(Seq2SeqTransformer):
         self.metrics_wer = evaluate.load("wer")
         self.metrics_cer = evaluate.load("cer")
 
+    # def on_train_batch_start(self, batch: Any, batch_idx: int):
+    #     batch.to(self.model.base_model.device)
+
     def common_step(self, prefix: str, batch: Any) -> torch.Tensor:
         outputs = self.model(**batch)
         loss, logits = outputs[:2]
