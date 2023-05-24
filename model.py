@@ -23,7 +23,7 @@ class WhisperModule(Seq2SeqTransformer):
 
     def compute_generate_metrics(self, batch, prefix):
         labels = batch["labels"].long()
-        output = self.model(batch)
+        output = self.model(**batch)
         out, loss = output["logits"], output["loss"]
 
         out[out == -100] = self.tokenizer.eot
