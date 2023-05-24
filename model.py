@@ -4,8 +4,9 @@ import evaluate
 from peft import LoraConfig, get_peft_model
 from transformers import WhisperForConditionalGeneration
 
-from transformers import WhisperTokenizer
+# from transformers import WhisperTokenizer
 import torch
+import whisper
 
 
 
@@ -13,7 +14,8 @@ class WhisperModule(Seq2SeqTransformer):
 
     def __init__(self, *args: Any, downstream_model_type=WhisperForConditionalGeneration, lora=False, load_in_8bit=True, device_map="auto", **kwargs: Any):
         super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
-        self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
+        # self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
+        self.tokenizer = whisper.tokenizer.get_tokenizer(True, task="transcribe")
         if lora == True:
             config = LoraConfig(r=32, lora_alpha=64, target_modules=["q_proj", "v_proj"], lora_dropout=0.05,
                                 bias="none")
