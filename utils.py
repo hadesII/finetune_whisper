@@ -26,7 +26,7 @@ def dataset_merge(train_list,dev_list):
             data = json.loads(line)
             audio_id = data['key']
             audio_path = data['wav']
-            text = data['orig_txt']
+            text = data['txt']
             train_audio_transcript_pair_list.append((audio_id, str(audio_path), text))
 
     with open(dev_list) as fr:
@@ -35,7 +35,7 @@ def dataset_merge(train_list,dev_list):
             data = json.loads(line)
             audio_id = data['key']
             audio_path = data['wav']
-            text = data['orig_txt']
+            text = data['txt']
             eval_audio_transcript_pair_list.append((audio_id, str(audio_path), text))
 
 
