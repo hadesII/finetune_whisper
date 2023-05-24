@@ -5,6 +5,7 @@ from peft import LoraConfig, get_peft_model
 from transformers import WhisperForConditionalGeneration
 
 from transformers import WhisperTokenizer
+import torch
 
 
 
@@ -21,14 +22,26 @@ class WhisperModule(Seq2SeqTransformer):
 
 
     def compute_generate_metrics(self, batch, prefix):
-        label_ids = batch["labels"]
-        label_ids[label_ids == -100] = self.tokenizer.pad_token_id
-        tgt_lns = self.tokenize_labels(label_ids)
-        pred_lns = self.model.generate(inputs=batch["input_features"], language="chinese", task="transcribe")
-        pred_lns = self.tokenizer.batch_decode(pred_lns, skip_special_tokens=True)
-        # wrap targets in list as score expects a list of potential references
-        result = 100 * self.wer.compute(predictions=pred_lns, references=tgt_lns)
-        self.log(f"{prefix}_wer", result, on_step=False, on_epoch=True, prog_bar=True)
+        labels = batch["labels"].long()
+        output = self.model(batch)
+        out, loss = output["logits"], output["loss"]
+
+        out[out == -100] = self.tokenizer.eot
+        labels[labels == -100] = self.tokenizer.eot
+
+        o_list, l_list = [], []
+        for o, l in zip(out, labels):
+            o = torch.argmax(o, dim=1)
+            o_list.append(self.tokenizer.decode_sk(o, skip_special_tokens=True))
+            l_list.append(self.tokenizer.decode_sk(l, skip_special_tokens=True))
+        cer = self.metrics_cer.compute(references=l_list, predictions=o_list)
+        wer = self.metrics_wer.compute(references=l_list, predictions=o_list)
+
+        self.log("val/loss", loss, on_step=True, prog_bar=True, logger=True)
+        self.log("val/cer", cer, on_step=True, prog_bar=True, logger=True)
+        self.log("val/wer", wer, on_step=True, prog_bar=True, logger=True)
+
 
     def configure_metrics(self, stage: str):
-        self.wer = evaluate.load("wer")
+        self.metrics_wer = evaluate.load('/home/yangwei/dtm/data/wer')
+        self.metrics_cer = evaluate.load('/home/yangwei/dtm/data/cer/')
