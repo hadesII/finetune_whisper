@@ -43,5 +43,5 @@ class WhisperModule(Seq2SeqTransformer):
 
 
     def configure_metrics(self, stage: str):
-        self.metrics_wer = evaluate.load('/home/yangwei/dtm/data/wer')
-        self.metrics_cer = evaluate.load('/home/yangwei/dtm/data/cer/')
+        self.metrics_wer = evaluate.load('metrics')
+        self.metrics_cer = evaluate.load('metrics')
