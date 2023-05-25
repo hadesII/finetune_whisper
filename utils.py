@@ -1,8 +1,8 @@
 import torchaudio
 import torch
-import os
 import json
 import random
+import torchaudio.transforms as at
 
 
 
@@ -43,3 +43,9 @@ def dataset_merge(train_list,dev_list):
     random.shuffle(eval_audio_transcript_pair_list)
 
     return train_audio_transcript_pair_list, eval_audio_transcript_pair_list
+
+def load_wave(wave_path, sample_rate:int=16000) -> torch.Tensor:
+    waveform, sr = torchaudio.load(wave_path, normalize=True)
+    if sample_rate != sr:
+        waveform = at.Resample(sr, sample_rate)(waveform)
+    return waveform
