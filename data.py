@@ -63,11 +63,11 @@ class WhisperDataModule(pl.LightningDataModule):
 
         batch = {
             "labels": labels,
-            "dec_input_ids": dec_input_ids
+            # "dec_input_ids": dec_input_ids
         }
 
         batch = {k: torch.tensor(np.array(v), requires_grad=False) for k, v in batch.items()}
-        batch["input_ids"] = input_ids
+        batch["input_features"] = input_ids
 
         return batch
 
