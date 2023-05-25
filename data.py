@@ -22,8 +22,10 @@ class WhisperDataModule(pl.LightningDataModule):
         train_list = os.path.join(data_dir, 'train.list.tokenizer')
         dev_list = os.path.join(data_dir, 'dev.list.tokenizer')
         train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(train_list=train_list,dev_list=dev_list)
-        self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
-        self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
+        # self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
+        # self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
+        self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate)
+        self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate)
 
     def train_dataloader(self) :
         return DataLoader(self.train_dataset,
