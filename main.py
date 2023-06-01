@@ -8,20 +8,20 @@ import os
 from pytorch_lightning.loggers import WandbLogger
 
 
-# os.environ["WANDB_API_KEY"] = "3275fc392e01519d0c4b70bd8494a49baa6be928"
-# os.environ["WANDB_MODE"] = "dryrun"
+os.environ["WANDB_API_KEY"] = "3275fc392e01519d0c4b70bd8494a49baa6be928"
+os.environ["WANDB_MODE"] = "dryrun"
 
 @hydra.main(config_path="config", config_name="config")
 def main(cfg:Config):
     dm = WhisperDataModule(cfg.data)
     model = WhisperModule(cfg.model,pretrained_model_name_or_path="openai/whisper-large-v2", lora=True, load_in_8bit=True, device_map="auto")
 
-    # wandb_logger = WandbLogger(project="whisper")
+    wandb_logger = WandbLogger(project="whisper",save_dir=cfg.trainer.root_dir)
 
     trainer = Trainer(accelerator="gpu",\
             precision=16,\
             max_epochs=5,\
-            # logger=wandb_logger,\
+            logger=wandb_logger,\
             default_root_dir="temp_large-v2",\
             enable_checkpointing=False)
 
