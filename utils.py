@@ -46,11 +46,11 @@ def load_from_local_path(wav_path, sample_rate = 16000, num_channel = 1):
 #     return train_audio_transcript_pair_list, eval_audio_transcript_pair_list
 
 
-def dataset_merge(lang_pair=("zh_yue",)):
+def dataset_merge(data_path,lang_pair=("cantonese",)):
     train_audio_transcript_pair_list = []
     eval_audio_transcript_pair_list = []
     for v in lang_pair:
-        train_list = os.path.join(v, 'train.list.tokenizer')
+        train_list = data_path /  v / 'train.list.tokenizer'
         with open(train_list) as fr:
             for line in fr:
                 line = line.strip()
@@ -60,7 +60,7 @@ def dataset_merge(lang_pair=("zh_yue",)):
                 text= data['txt']
                 ids = data['ids']
                 train_audio_transcript_pair_list.append((audio_id, str(audio_path), text, ids))
-        dev_list = os.path.join(v, 'dev.list.tokenizer')
+        dev_list = data_path / v / 'dev.list.tokenizer'
         with open(dev_list) as fr:
             for line in fr:
                 line = line.strip()

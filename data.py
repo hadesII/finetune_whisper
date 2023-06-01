@@ -7,21 +7,24 @@ from torch.utils.data import DataLoader, Dataset
 import whisper
 
 import os
+from config import Data
+from pathlib import Path
 
 class WhisperDataModule(pl.LightningDataModule):
 
-    def __init__(self, batch_size = 1, num_workers = 2, sample_rate = 16000):
+    def __init__(self, cfg:Data,batch_size = 1, num_workers = 2, sample_rate = 16000):
         super().__init__()
         self.processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.sample_rate = sample_rate
+        self.cfg = cfg
 
     def setup(self, stage: str,**kwargs) -> None:
-        data_dir = 'data/zh_yue'
-        train_list = os.path.join(data_dir, 'train.list.tokenizer')
-        dev_list = os.path.join(data_dir, 'dev.list.tokenizer')
-        train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge()
+        data_dir = Path(self.cfg.data_path)
+        # train_list = os.path.join(data_dir, 'train.list.tokenizer')
+        # dev_list = os.path.join(data_dir, 'dev.list.tokenizer')
+        train_audio_transcript_pair_list, eval_audio_transcript_pair_list = dataset_merge(data_dir)
         # self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
         # self.valid_dataset = SpeechDataset(eval_audio_transcript_pair_list, self.sample_rate, processor=self.processor)
         self.train_dataset = SpeechDataset(train_audio_transcript_pair_list, self.sample_rate)

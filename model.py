@@ -7,15 +7,18 @@ from transformers import WhisperForConditionalGeneration
 # from transformers import WhisperTokenizer
 import torch
 import whisper
+import os
+from config import Model
 
 
 
 class WhisperModule(Seq2SeqTransformer):
 
-    def __init__(self, *args: Any, downstream_model_type=WhisperForConditionalGeneration, lora=False, load_in_8bit=True, device_map="auto", **kwargs: Any):
+    def __init__(self, *args: Any,cfg:Model, downstream_model_type=WhisperForConditionalGeneration, lora=False, **kwargs: Any):
         super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
         # self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
         self.tokenizer = whisper.tokenizer.get_tokenizer(True, task="transcribe")
+        self.cfg = cfg
         if lora == True:
             config = LoraConfig(r=32, lora_alpha=64, target_modules=["q_proj", "v_proj"], lora_dropout=0.05,
                                 bias="none")
@@ -47,3 +50,14 @@ class WhisperModule(Seq2SeqTransformer):
     def configure_metrics(self, stage: str):
         self.metrics_wer = evaluate.load('metrics/wer')
         self.metrics_cer = evaluate.load('metrics/cer')
+
+    def on_validation_epoch_end(self) -> None:
+
+        checkpoint_folder = os.path.join(self.cfg.checkpoint_root, f"checkpoints-{self.global_step}")
+
+        peft_model_path = os.path.join(checkpoint_folder, "adapter_model")
+        self.model.save_pretrained(peft_model_path)
+
+        pytorch_model_path = os.path.join(checkpoint_folder, "pytorch_model.bin")
+        if os.path.exists(pytorch_model_path):
+            os.remove(pytorch_model_path)
