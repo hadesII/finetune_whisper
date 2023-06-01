@@ -14,7 +14,7 @@ from config import Model
 
 class WhisperModule(Seq2SeqTransformer):
 
-    def __init__(self, *args: Any,cfg:Model, downstream_model_type=WhisperForConditionalGeneration, lora=False, **kwargs: Any):
+    def __init__(self, cfg:Model, downstream_model_type=WhisperForConditionalGeneration, lora=False, *args: Any, **kwargs: Any):
         super().__init__(*args,downstream_model_type=downstream_model_type, **kwargs)
         # self.tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large-v2", language="chinese", task="transcribe")
         self.tokenizer = whisper.tokenizer.get_tokenizer(True, task="transcribe")
@@ -48,8 +48,8 @@ class WhisperModule(Seq2SeqTransformer):
 
 
     def configure_metrics(self, stage: str):
-        self.metrics_wer = evaluate.load('metrics/wer')
-        self.metrics_cer = evaluate.load('metrics/cer')
+        self.metrics_wer = evaluate.load('/home/yangwei/dtm/projects/finetune_whisper/metrics/wer')
+        self.metrics_cer = evaluate.load('/home/yangwei/dtm/projects/finetune_whisper/metrics/cer')
 
     def on_validation_epoch_end(self) -> None:
 

@@ -1,6 +1,7 @@
 from dataclasses import dataclass,field
 from typing import Optional
 from hydra.core.config_store import ConfigStore
+from typing import Dict
 
 from omegaconf import II
 
@@ -26,13 +27,13 @@ class Data:
     num_workers: int = field(default=5)
     sample_rate: int = field(default=16000)
     lang_pairs: tuple[str] = field(default=("cantonese",))
-    prompt: Optional[dict] = field(default=None)
+    prompt: Optional[Dict] = field(default=None)
 
 @dataclass
 class Trainer:
     gradient_accumulation_steps: int = field(default=2)
     max_epoch: int = field(default=10)
-    root_dir: str = field(default="/data1/outputs/lora")
+    root_dir: str = field(default="/data1/dtm/outputs/lora")
 
 @dataclass
 class Config:

@@ -4,6 +4,7 @@ import json
 import random
 import torchaudio.transforms as at
 import os
+from pathlib import Path
 
 
 
@@ -50,23 +51,27 @@ def dataset_merge(data_path,lang_pair=("cantonese",)):
     train_audio_transcript_pair_list = []
     eval_audio_transcript_pair_list = []
     for v in lang_pair:
-        train_list = data_path /  v / 'train.list.tokenizer'
+        train_list = data_path /  v / "txt" / 'train.list.tokenizer'
         with open(train_list) as fr:
             for line in fr:
                 line = line.strip()
                 data = json.loads(line)
                 audio_id = data['key']
                 audio_path = data['wav']
+                if not Path(audio_path).is_file():
+                    import pdb; pdb.set_trace()
                 text= data['txt']
                 ids = data['ids']
                 train_audio_transcript_pair_list.append((audio_id, str(audio_path), text, ids))
-        dev_list = data_path / v / 'dev.list.tokenizer'
+        dev_list = data_path / v / "txt" / 'dev.list.tokenizer'
         with open(dev_list) as fr:
             for line in fr:
                 line = line.strip()
                 data = json.loads(line)
                 audio_id = data['key']
                 audio_path = data['wav']
+                if not Path(audio_path).is_file():
+                    import pdb; pdb.set_trace()
                 text= data['txt']
                 ids = data['ids']
                 eval_audio_transcript_pair_list.append((audio_id, str(audio_path), text, ids))
